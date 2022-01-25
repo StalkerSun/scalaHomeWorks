@@ -6,15 +6,14 @@ import scala.util.Random
 object MergeSort extends App{
 
 
-  val test = Vector.fill(Random.between(0,20))(Random.between(-20, 20))
+  //val test = Vector.fill(Random.between(0,1_000_000))(Random.between(-20, 20))
+  val test = Vector.fill(1_000_000)(Random.between(-20, 20))
 
   println(mergeSort(test).mkString(" "))
 
   def mergeSort(source:Vector[Int]):Vector[Int]={
-    if(source.isEmpty || (source.length == 1))
-      source
+    if(source.isEmpty || (source.length == 1)) source
       else{
-
       @tailrec
       def go(left:Vector[Int], right:Vector[Int], acc:Vector[Int]=Vector.empty):Vector[Int]={
         (left, right) match {
@@ -30,10 +29,37 @@ object MergeSort extends App{
           }
         }
       }
+      @tailrec
+      def merge(left: Vector[Int], right: Vector[Int], acc:Vector[Int] = Vector.empty):Vector[Int]=
+        left match {
+          case a if a.isEmpty => acc.reverse ++ right
+          case l+:leftTail=>right match {
+            case b if b.isEmpty => acc.reverse ++ left
+            case r +: rightTail=>
+              if(l<r) merge(leftTail, right, l +: acc)
+              else merge(left, rightTail, r +: acc)
+          }
+        }
+
+      @tailrec
+      def mergeNotEqual(left: Vector[Int], right: Vector[Int], acc:Vector[Int] = Vector.empty):Vector[Int]=
+        left match {
+          case a if a.isEmpty => if(acc.isEmpty || acc.head!=right.head) acc.reverse ++ right else acc.reverse
+          case l+:leftTail=>right match {
+            case b if b.isEmpty => if(acc.isEmpty || acc.head!=left.head)  acc.reverse ++ left else acc.reverse
+            case r +: rightTail=>
+              if(l<r) mergeNotEqual(leftTail, right, if( acc.isEmpty || l != acc.head ) l +: acc else acc)
+              else mergeNotEqual(left, rightTail, if( acc.isEmpty || r!=acc.head ) r +: acc else acc)
+          }
+        }
+
       val (left, right) = source.splitAt(source.length/2)
-      go (mergeSort(left), mergeSort(right))
+
+      mergeNotEqual(mergeSort(left), mergeSort(right))
     }
   }
+
+
 
 
 }
